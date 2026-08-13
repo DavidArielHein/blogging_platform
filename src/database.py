@@ -1,7 +1,7 @@
-from sqlalchemy import create_engine, DateTime, func
+from sqlalchemy import create_engine, DateTime, func, JSON
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Mapped, mapped_column
 
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
@@ -36,7 +36,7 @@ class PostDB(Base):
     title: Mapped[str]
     content: Mapped[str]
     category: Mapped[str]
-    tags: Mapped[List[str]]
+    tags: Mapped[Optional[List[str]]] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), 
         server_default=func.now()
@@ -49,13 +49,16 @@ class PostDB(Base):
 
 
 # Pydantic schemas
-class Post(BaseModel):
+class PostBase(BaseModel):
     title: str
     content: str
     category: str
-    tags: List[str]
+    tags: List[str] | None = []
 
-class PostResponse(Post):
+class PostCreate(PostBase):
+    pass
+
+class PostResponse(PostBase):
     id: int
     created_at: datetime
     updated_at: datetime
